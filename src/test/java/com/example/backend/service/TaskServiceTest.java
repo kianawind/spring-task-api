@@ -144,4 +144,68 @@ class TaskServiceTest {
         assertEquals("Learn Mockito", capturedTask.getTitle());
         assertTrue(capturedTask.isCompleted());
     }
+
+    @Test
+    void shouldNotSaveWhenTaskDoesNotExist() {
+
+        when(taskRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        Task updatedTask = new Task();
+        updatedTask.setTitle("New title");
+        updatedTask.setCompleted(true);
+
+        taskService.updateTask(99L, updatedTask);
+
+        verify(taskRepository, times(1)).findById(99L);
+
+        verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    @Test
+    void shouldReturnTaskPassedToSave() {
+
+        Task task = new Task();
+        task.setTitle("Mockito");
+
+        when(taskRepository.save(any(Task.class)))
+                .thenAnswer(invocation -> {
+                    Task invocationTask = invocation.getArgument(0);
+                    return invocationTask;
+                });
+
+        Task result = taskRepository.save(task);
+
+        assertSame(task, result);
+    }
+
+    @Test
+    void shouldCreateTaskWithId10() {
+
+        Task task = new Task();
+        task.setTitle("Learn Mockito");
+        task.setCompleted(false);
+
+        when(taskRepository.save(any(Task.class)))
+                .thenAnswer(invocation -> {
+
+                    Task savedTask = invocation.getArgument(0);
+
+                    savedTask.setId(10L);
+
+                    return  savedTask;
+                });
+
+        Task result = taskService.createTask(task);
+
+        ArgumentCaptor<Task> captor =
+                ArgumentCaptor.forClass(Task.class);
+
+        verify(taskRepository).save(captor.capture());
+
+        Task capturedTask = captor.getValue();
+
+        assertEquals("Learn Mockito", capturedTask.getTitle());
+        assertEquals(10L, result.getId());
+    }
 }
