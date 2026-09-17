@@ -1,5 +1,7 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.TaskRequest;
+import com.example.backend.dto.TaskResponse;
 import com.example.backend.model.Task;
 import com.example.backend.service.TaskService;
 import jakarta.validation.Valid;
@@ -19,9 +21,19 @@ public class TaskController {
     }
 
     @PostMapping("/tasks")
-    public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
+    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
+        Task task = new Task(
+                null,
+                request.getTitle(),
+                request.isCompleted()
+        );
         Task savedTask = taskService.createTask(task);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedTask);
+        TaskResponse response = new TaskResponse(
+            savedTask.getId(),
+            savedTask.getTitle(),
+            savedTask.isCompleted()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/tasks")

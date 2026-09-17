@@ -12,7 +12,7 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Title must not be blank")
+//    @NotBlank(message = "Title must not be blank")- moved to TaskRequest title
     private String title;
     private boolean completed;
 
