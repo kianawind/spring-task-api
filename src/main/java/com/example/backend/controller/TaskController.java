@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.TaskRequest;
 import com.example.backend.dto.TaskResponse;
+import com.example.backend.mapper.TaskMapper;
 import com.example.backend.model.Task;
 import com.example.backend.service.TaskService;
 import jakarta.validation.Valid;
@@ -15,24 +16,18 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final TaskMapper taskMapper;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, TaskMapper taskMapper) {
         this.taskService = taskService;
+        this.taskMapper = taskMapper;
     }
 
     @PostMapping("/tasks")
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
-        Task task = new Task(
-                null,
-                request.getTitle(),
-                request.isCompleted()
-        );
+        Task task = taskMapper.toEntity(request);
         Task savedTask = taskService.createTask(task);
-        TaskResponse response = new TaskResponse(
-            savedTask.getId(),
-            savedTask.getTitle(),
-            savedTask.isCompleted()
-        );
+        TaskResponse response = taskMapper.toResponse(savedTask);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
