@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import com.example.backend.exception.TaskNotFoundException;
 import com.example.backend.model.Task;
 import com.example.backend.repository.TaskRepository;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,10 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
-    public Optional<Task> getTaskById(Long id) {
-        return taskRepository.findById(id);
+    public Task getTaskById(Long id) {
+
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
     }
 
     public  Task createTask(Task task) {

@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import com.example.backend.exception.TaskNotFoundException;
 import com.example.backend.model.Task;
 import com.example.backend.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
@@ -32,11 +33,11 @@ class TaskServiceTest {
         when(taskRepository.findById(1L))
                 .thenReturn(Optional.of(task));
 
-        Optional<Task> result = taskService.getTaskById(1L);
+        Task result = taskService.getTaskById(1L);
 
-        assertTrue(result.isPresent());
-        assertEquals("Learn Spring", result.get().getTitle());
-        assertEquals(true, result.get().isCompleted());
+        assertEquals(1L, result.getId());
+        assertEquals("Learn Spring", result.getTitle());
+        assertTrue(result.isCompleted());
     }
 
     @Test
@@ -44,10 +45,9 @@ class TaskServiceTest {
 
         when(taskRepository.findById(99L))
                 .thenReturn(Optional.empty());
+        TaskNotFoundException exception = assertThrows(TaskNotFoundException.class, () -> taskService.getTaskById(99L));
 
-        Optional<Task> result = taskService.getTaskById(99L);
-
-        assertTrue(result.isEmpty());
+        assertEquals("Task with id 99 not found", exception.getMessage());
     }
 
     @Test

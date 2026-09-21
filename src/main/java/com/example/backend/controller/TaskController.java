@@ -41,10 +41,13 @@ public class TaskController {
 
     @GetMapping("/tasks/{id}")
     public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long id) {
-        return taskService.getTaskById(id)
-                .map(taskMapper::toResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+//        return taskService.getTaskById(id)
+//                .map(taskMapper::toResponse)
+//                .map(ResponseEntity::ok)
+//                .orElse(ResponseEntity.notFound().build());
+        Task task = taskService.getTaskById(id);
+        TaskResponse response = taskMapper.toResponse(task);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/tasks/{id}")
