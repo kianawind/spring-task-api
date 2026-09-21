@@ -32,13 +32,17 @@ public class TaskController {
     }
 
     @GetMapping("/tasks")
-    public List<Task> getTasks() {
-        return taskService.getAllTasks();
+    public List<TaskResponse> getTasks() {
+        return taskService.getAllTasks()
+                .stream()
+                .map(taskMapper::toResponse)
+                .toList();
     }
 
     @GetMapping("/tasks/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
+    public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long id) {
         return taskService.getTaskById(id)
+                .map(taskMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -53,9 +57,10 @@ public class TaskController {
     }
 
     @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
-
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequest request) {
+        Task updatedTask = taskMapper.toEntity(request);
         return taskService.updateTask(id, updatedTask)
+                .map(taskMapper::toResponse)
                 .map( ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
