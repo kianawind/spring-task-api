@@ -41,10 +41,6 @@ public class TaskController {
 
     @GetMapping("/tasks/{id}")
     public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long id) {
-//        return taskService.getTaskById(id)
-//                .map(taskMapper::toResponse)
-//                .map(ResponseEntity::ok)
-//                .orElse(ResponseEntity.notFound().build());
         Task task = taskService.getTaskById(id);
         TaskResponse response = taskMapper.toResponse(task);
         return ResponseEntity.ok(response);
@@ -52,9 +48,6 @@ public class TaskController {
 
     @DeleteMapping("/tasks/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        if (!taskService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }
@@ -62,9 +55,8 @@ public class TaskController {
     @PutMapping("/tasks/{id}")
     public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequest request) {
         Task updatedTask = taskMapper.toEntity(request);
-        return taskService.updateTask(id, updatedTask)
-                .map(taskMapper::toResponse)
-                .map( ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Task savedTask = taskService.updateTask(id, updatedTask);
+        TaskResponse response = taskMapper.toResponse(savedTask);
+        return  ResponseEntity.ok(response);
     }
 }

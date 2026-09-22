@@ -30,15 +30,12 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public Optional<Task> updateTask(Long id, Task updatedTask) {
-
-        return taskRepository.findById(id)
-                .map(task -> {
-                    task.setTitle(updatedTask.getTitle());
-                    task.setCompleted(updatedTask.isCompleted());
-
-                    return taskRepository.save(task);
-                });
+    public Task updateTask(Long id, Task updatedTask) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(()-> new TaskNotFoundException(id));
+        task.setTitle(updatedTask.getTitle());
+        task.setCompleted(updatedTask.isCompleted());
+        return taskRepository.save(task);
     }
 
     public boolean existsById(Long id) {
@@ -46,6 +43,9 @@ public class TaskService {
     }
 
     public void deleteTask(Long id) {
+        if (!taskRepository.existsById(id)) {
+            throw new TaskNotFoundException(id);
+        }
         taskRepository.deleteById(id);
     }
 }

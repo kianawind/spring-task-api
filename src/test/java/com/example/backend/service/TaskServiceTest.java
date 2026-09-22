@@ -84,9 +84,21 @@ class TaskServiceTest {
     }
 
     @Test
-    void shouldDeleteTask() {
+    void shouldDeleteTaskWhenTaskExists() {
+        when(taskRepository.existsById(1L)).thenReturn(true);
         taskService.deleteTask(1L);
+        verify(taskRepository).existsById(1L);
         verify(taskRepository).deleteById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingTaskDoesNotExist() {
+        when(taskRepository.existsById(99L)).thenReturn(false);
+        TaskNotFoundException exception = assertThrows(TaskNotFoundException.class,
+                () -> taskService.deleteTask(99L));
+        assertEquals("Task with id 99 not found",exception.getMessage());
+        verify(taskRepository).existsById(99L);
+        verify(taskRepository, never()).deleteById(99L);
     }
 
     @Test
@@ -111,23 +123,14 @@ class TaskServiceTest {
     }
 
     @Test
-    void shouldDeleteRandomTask() {
-        taskService.deleteTask(5L);
-        verify(taskRepository, times(1)).deleteById(5L);
-    }
-
-    @Test
     void shouldUpdateTask() {
 
         // Existing task in the "database"
         Task existingTask = new Task(1L, "Learn Spring", false);
-
         // Data coming from the client
         Task updatedTask = new Task(null, "Learn Mockito", true);
-
         when(taskRepository.findById(1L))
                 .thenReturn(Optional.of(existingTask));
-
         when(taskRepository.save(any(Task.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -143,22 +146,21 @@ class TaskServiceTest {
         assertEquals(1L, capturedTask.getId());
         assertEquals("Learn Mockito", capturedTask.getTitle());
         assertTrue(capturedTask.isCompleted());
+
+        verify(taskRepository).findById(1L);
+        verify(taskRepository).save(existingTask);
     }
 
     @Test
     void shouldNotSaveWhenTaskDoesNotExist() {
-
-        when(taskRepository.findById(99L))
-                .thenReturn(Optional.empty());
-
-        Task updatedTask = new Task();
-        updatedTask.setTitle("New title");
-        updatedTask.setCompleted(true);
-
-        taskService.updateTask(99L, updatedTask);
-
+        when(taskRepository.findById(99L)).thenReturn(Optional.empty());
+        Task updatedTask = new Task(null,"Learn Mockito",true);
+        TaskNotFoundException exception = assertThrows(
+                TaskNotFoundException.class,
+                () -> taskService.updateTask(99L, updatedTask)
+        );
+        assertEquals("Task with id 99 not found",exception.getMessage());
         verify(taskRepository, times(1)).findById(99L);
-
         verify(taskRepository, never()).save(any(Task.class));
     }
 
