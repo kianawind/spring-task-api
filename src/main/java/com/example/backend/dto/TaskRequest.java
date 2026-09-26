@@ -2,6 +2,7 @@ package com.example.backend.dto;
 
 import com.example.backend.model.Priority;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class TaskRequest {
 
@@ -9,6 +10,8 @@ public class TaskRequest {
     private String title;
 
     private boolean completed;
+
+    @NotNull(message = "Priority must not be null")
     private Priority priority;
 
     public TaskRequest() {

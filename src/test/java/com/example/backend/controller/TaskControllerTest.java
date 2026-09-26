@@ -201,4 +201,40 @@ class TaskControllerTest {
                         .value("Task with id 99 not found"));
         verify(taskService).deleteTask(99L);
     }
+
+    @Test
+    void shouldReturn400WhenPriorityIsMissing() throws Exception {
+        mockMvc.perform(post("/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "title": "Learn validation",
+                              "completed": false
+                            }
+                            """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.priority")
+                        .value("Priority must not be null"));
+        verifyNoInteractions(taskService);
+        verifyNoInteractions(taskMapper);
+    }
+
+    @Test
+    void shouldReturn400WhenPriorityIsInvalid() throws Exception {
+        mockMvc.perform(post("/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "title": "Invalid priority",
+                              "completed": false,
+                              "priority": "URGENT"
+                            }
+                            """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Invalid request body"));
+        verifyNoInteractions(taskService);
+        verifyNoInteractions(taskMapper);
+    }
+
 }
