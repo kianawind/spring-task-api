@@ -35,6 +35,7 @@ public class TaskService {
                 .orElseThrow(()-> new TaskNotFoundException(id));
         task.setTitle(updatedTask.getTitle());
         task.setCompleted(updatedTask.isCompleted());
+        task.setPriority(updatedTask.getPriority());
         return taskRepository.save(task);
     }
 

@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.exception.TaskNotFoundException;
+import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 import com.example.backend.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class TaskServiceTest {
     @Test
     void shouldReturnTaskWhenTaskExists() {
 
-        Task task = new Task(1L, "Learn Spring", true);
+        Task task = new Task(1L, "Learn Spring", true, Priority.HIGH);
 
         when(taskRepository.findById(1L))
                 .thenReturn(Optional.of(task));
@@ -38,6 +39,7 @@ class TaskServiceTest {
         assertEquals(1L, result.getId());
         assertEquals("Learn Spring", result.getTitle());
         assertTrue(result.isCompleted());
+        assertEquals(Priority.HIGH, result.getPriority());
     }
 
     @Test
@@ -53,8 +55,8 @@ class TaskServiceTest {
     @Test
     void shouldReturnAllTasks() {
 
-        Task task1 = new Task(1L, "Learn Spring", false);
-        Task task2 = new Task(2L, "Learn Mockito", true);
+        Task task1 = new Task(1L, "Learn Spring", false, Priority.HIGH);
+        Task task2 = new Task(2L, "Learn Mockito", true, Priority.MEDIUM);
 
         when(taskRepository.findAll())
                 .thenReturn(List.of(task1, task2));
@@ -64,13 +66,15 @@ class TaskServiceTest {
         assertEquals(2, result.size());
         assertEquals("Learn Spring", result.get(0).getTitle());
         assertEquals("Learn Mockito", result.get(1).getTitle());
+        assertEquals(Priority.HIGH, result.get(0).getPriority());
+        assertEquals(Priority.MEDIUM, result.get(1).getPriority());
     }
 
     @Test
     void shouldCreateTask() {
 
-        Task task = new Task(null, "Learn Mockito", false);
-        Task savedTask = new Task(1L, "Learn Mockito", false);
+        Task task = new Task(null, "Learn Mockito", false, Priority.HIGH);
+        Task savedTask = new Task(1L, "Learn Mockito", false, Priority.HIGH);
 
         when(taskRepository.save(any(Task.class)))
                 .thenReturn(savedTask);
@@ -79,6 +83,7 @@ class TaskServiceTest {
 
         assertEquals(1L, result.getId());
         assertEquals("Learn Mockito", result.getTitle());
+        assertEquals(Priority.HIGH, result.getPriority());
 
         verify(taskRepository, times(1)).save(any(Task.class));
     }
@@ -126,9 +131,9 @@ class TaskServiceTest {
     void shouldUpdateTask() {
 
         // Existing task in the "database"
-        Task existingTask = new Task(1L, "Learn Spring", false);
+        Task existingTask = new Task(1L, "Learn Spring", false, Priority.LOW);
         // Data coming from the client
-        Task updatedTask = new Task(null, "Learn Mockito", true);
+        Task updatedTask = new Task(null, "Learn Mockito", true, Priority.HIGH);
         when(taskRepository.findById(1L))
                 .thenReturn(Optional.of(existingTask));
         when(taskRepository.save(any(Task.class)))
@@ -145,6 +150,7 @@ class TaskServiceTest {
 
         assertEquals(1L, capturedTask.getId());
         assertEquals("Learn Mockito", capturedTask.getTitle());
+        assertEquals(Priority.HIGH, capturedTask.getPriority());
         assertTrue(capturedTask.isCompleted());
 
         verify(taskRepository).findById(1L);
@@ -154,7 +160,7 @@ class TaskServiceTest {
     @Test
     void shouldNotSaveWhenTaskDoesNotExist() {
         when(taskRepository.findById(99L)).thenReturn(Optional.empty());
-        Task updatedTask = new Task(null,"Learn Mockito",true);
+        Task updatedTask = new Task(null,"Learn Mockito",true, Priority.HIGH);
         TaskNotFoundException exception = assertThrows(
                 TaskNotFoundException.class,
                 () -> taskService.updateTask(99L, updatedTask)
@@ -187,6 +193,7 @@ class TaskServiceTest {
         Task task = new Task();
         task.setTitle("Learn Mockito");
         task.setCompleted(false);
+        task.setPriority(Priority.HIGH);
 
         when(taskRepository.save(any(Task.class)))
                 .thenAnswer(invocation -> {
@@ -208,6 +215,8 @@ class TaskServiceTest {
         Task capturedTask = captor.getValue();
 
         assertEquals("Learn Mockito", capturedTask.getTitle());
+        assertEquals(false, capturedTask.isCompleted());
+        assertEquals(Priority.HIGH, capturedTask.getPriority());
         assertEquals(10L, result.getId());
     }
 }

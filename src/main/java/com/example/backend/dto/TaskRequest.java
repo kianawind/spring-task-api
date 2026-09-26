@@ -1,5 +1,6 @@
 package com.example.backend.dto;
 
+import com.example.backend.model.Priority;
 import jakarta.validation.constraints.NotBlank;
 
 public class TaskRequest {
@@ -8,13 +9,15 @@ public class TaskRequest {
     private String title;
 
     private boolean completed;
+    private Priority priority;
 
     public TaskRequest() {
     }
 
-    public TaskRequest(String title, boolean completed) {
+    public TaskRequest(String title, boolean completed, Priority priority) {
         this.title = title;
         this.completed = completed;
+        this.priority = priority;
     }
 
     public String getTitle() {
@@ -31,5 +34,13 @@ public class TaskRequest {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 }

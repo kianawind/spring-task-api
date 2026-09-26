@@ -2,17 +2,20 @@ package com.example.backend.controller;
 import com.example.backend.dto.TaskRequest;
 import com.example.backend.dto.TaskResponse;
 import com.example.backend.exception.TaskNotFoundException;
+import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 
 import com.example.backend.mapper.TaskMapper;
 import com.example.backend.service.TaskService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,10 +38,10 @@ class TaskControllerTest {
     @Test
     void shouldReturnTaskWhenTaskExists() throws Exception {
 
-        Task task = new Task(1L, "Learn MockMvc", false);
+        Task task = new Task(1L, "Learn MockMvc", false, Priority.HIGH);
 
         TaskResponse response =
-                new TaskResponse(1L, "Learn MockMvc", false);
+                new TaskResponse(1L, "Learn MockMvc", false, Priority.HIGH);
 
         when(taskService.getTaskById(1L))
                 .thenReturn(task);
@@ -50,7 +53,8 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("Learn MockMvc"))
-                .andExpect(jsonPath("$.completed").value(false));
+                .andExpect(jsonPath("$.completed").value(false))
+                .andExpect(jsonPath("$.priority").value(Priority.HIGH.name()));
     }
 
     @Test
@@ -69,11 +73,11 @@ class TaskControllerTest {
     @Test
     void shouldCreateTask() throws Exception {
 
-        Task task = new Task(null, "Learn MockMvc", false);
-        Task savedTask = new Task(1L, "Learn MockMvc", false);
+        Task task = new Task(null, "Learn MockMvc", false, Priority.HIGH);
+        Task savedTask = new Task(1L, "Learn MockMvc", false, Priority.HIGH);
 
         TaskResponse response =
-                new TaskResponse(1L, "Learn MockMvc", false);
+                new TaskResponse(1L, "Learn MockMvc", false, Priority.HIGH);
 
         when(taskMapper.toEntity(any(TaskRequest.class)))
                 .thenReturn(task);
@@ -89,13 +93,15 @@ class TaskControllerTest {
                         .content("""
                             {
                               "title": "Learn MockMvc",
-                              "completed": false
+                              "completed": false,
+                              "priority": "HIGH"
                             }
                             """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("Learn MockMvc"))
-                .andExpect(jsonPath("$.completed").value(false));
+                .andExpect(jsonPath("$.completed").value(false))
+                .andExpect(jsonPath("$.priority").value(Priority.HIGH.name()));
     }
 
     @Test
@@ -105,7 +111,8 @@ class TaskControllerTest {
                         .content("""
                             {
                               "title": "",
-                              "completed": false
+                              "completed": false,
+                              "priority": "HIGH"
                             }
                             """))
                 .andExpect(status().isBadRequest())
@@ -117,10 +124,10 @@ class TaskControllerTest {
 
     @Test
     void shouldUpdateTask () throws  Exception {
-        Task updatedTask = new Task(null, "Learn MockMvc", false);
-        Task savedTask = new Task(1L, "Learn MockMvc update", true);
+        Task updatedTask = new Task(null, "Learn MockMvc", false, Priority.HIGH);
+        Task savedTask = new Task(1L, "Learn MockMvc update", true, Priority.LOW);
 
-        TaskResponse response = new TaskResponse(1L,"Learn MockMvc update", true);
+        TaskResponse response = new TaskResponse(1L,"Learn MockMvc update", true, Priority.LOW);
 
         when(taskMapper.toEntity(any(TaskRequest.class)))
                 .thenReturn(updatedTask);
@@ -136,19 +143,26 @@ class TaskControllerTest {
                 .content("""
                         {
                         "title": "Learn MockMvc update",
-                        "completed": true
+                        "completed": true,
+                        "priority": "LOW"
                         }
                         """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("Learn MockMvc update"))
-                .andExpect(jsonPath("$.completed").value(true));
+                .andExpect(jsonPath("$.completed").value(true))
+                .andExpect(jsonPath("$.priority").value(Priority.LOW.name()));
+
+        ArgumentCaptor<TaskRequest> captor = ArgumentCaptor.forClass(TaskRequest.class);
+        verify(taskMapper).toEntity(captor.capture());
+        TaskRequest request = captor.getValue();
+        assertEquals(Priority.LOW, request.getPriority());
 
     }
 
     @Test
     void shouldReturn404WhenUpdatedTaskDoesNotExist() throws Exception {
-        Task updatedTask = new Task(null, "Learn MockMvc", false);
+        Task updatedTask = new Task(null, "Learn MockMvc", false, Priority.LOW);
         when(taskMapper.toEntity(any(TaskRequest.class)))
                 .thenReturn(updatedTask);
         when(taskService.updateTask(99L, updatedTask))
