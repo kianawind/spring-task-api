@@ -215,8 +215,24 @@ class TaskServiceTest {
         Task capturedTask = captor.getValue();
 
         assertEquals("Learn Mockito", capturedTask.getTitle());
-        assertEquals(false, capturedTask.isCompleted());
+        assertFalse(capturedTask.isCompleted());
         assertEquals(Priority.HIGH, capturedTask.getPriority());
         assertEquals(10L, result.getId());
+    }
+
+    @Test
+    void shouldGetTasksByCompleted() {
+        Task task1 = new Task(1L, "Java", true, Priority.HIGH);
+        Task task2 = new Task(2L, "Completed true", true, Priority.MEDIUM);
+
+        when(taskRepository.findByCompleted(true))
+                .thenReturn(List.of(task1, task2));
+
+        List<Task> result = taskService.getTasksByCompleted(true);
+
+        assertEquals(2, result.size());
+        assertEquals("Java", result.get(0).getTitle());
+        assertEquals("Completed true", result.get(1).getTitle());
+        verify(taskRepository).findByCompleted(true);
     }
 }

@@ -15,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -173,7 +175,8 @@ class TaskControllerTest {
                         .content("""
                                 {
                                    "title": "Learn MockMvc",
-                                   "completed": false
+                                   "completed": false,
+                                   "priority": "LOW"
                                 }
                                 """)
                 )
@@ -235,6 +238,50 @@ class TaskControllerTest {
                         .value("Invalid request body"));
         verifyNoInteractions(taskService);
         verifyNoInteractions(taskMapper);
+    }
+
+    @Test
+    void shouldGetCompletedTasks() throws Exception {
+        Task task = new Task(1L, "Learn filtering", true, Priority.HIGH);
+
+        TaskResponse response =
+                new TaskResponse(1L, "Learn filtering", true, Priority.HIGH);
+
+        when(taskService.getTasksByCompleted(true))
+                .thenReturn(List.of(task));
+
+        when(taskMapper.toResponse(task))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/tasks?completed=true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].completed").value(true));
+
+        verify(taskService).getTasksByCompleted(true);
+        verify(taskService, never()).getAllTasks();
+    }
+
+    @Test
+    void shouldGetIncompleteTasks() throws Exception {
+        Task task = new Task(2L, "Learn filtering completed=false", false, Priority.HIGH);
+
+        TaskResponse response =
+                new TaskResponse(2L, "Learn filtering completed=false", false, Priority.HIGH);
+
+        when(taskService.getTasksByCompleted(false))
+                .thenReturn(List.of(task));
+
+        when(taskMapper.toResponse(task))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/tasks?completed=false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(2))
+                .andExpect(jsonPath("$[0].completed").value(false));
+
+        verify(taskService).getTasksByCompleted(false);
+        verify(taskService, never()).getAllTasks();
     }
 
 }

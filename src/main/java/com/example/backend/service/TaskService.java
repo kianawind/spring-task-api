@@ -49,4 +49,8 @@ public class TaskService {
         }
         taskRepository.deleteById(id);
     }
+
+    public List<Task> getTasksByCompleted(boolean completed) {
+        return taskRepository.findByCompleted(completed);
+    }
 }

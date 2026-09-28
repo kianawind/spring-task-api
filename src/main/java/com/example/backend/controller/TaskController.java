@@ -32,9 +32,14 @@ public class TaskController {
     }
 
     @GetMapping("/tasks")
-    public List<TaskResponse> getTasks() {
-        return taskService.getAllTasks()
-                .stream()
+    public List<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed) {
+        List<Task> tasks;
+        if (completed == null) {
+            tasks = taskService.getAllTasks();
+        } else {
+            tasks = taskService.getTasksByCompleted(completed);
+        }
+        return tasks.stream()
                 .map(taskMapper::toResponse)
                 .toList();
     }
