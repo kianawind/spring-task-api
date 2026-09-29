@@ -247,7 +247,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering", true, Priority.HIGH);
 
-        when(taskService.getTasksByCompleted(true))
+        when(taskService.getTasks(true, null))
                 .thenReturn(List.of(task));
 
         when(taskMapper.toResponse(task))
@@ -258,8 +258,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].completed").value(true));
 
-        verify(taskService).getTasksByCompleted(true);
-        verify(taskService, never()).getAllTasks();
+        verify(taskService).getTasks(true, null);
     }
 
     @Test
@@ -269,7 +268,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(2L, "Learn filtering completed=false", false, Priority.HIGH);
 
-        when(taskService.getTasksByCompleted(false))
+        when(taskService.getTasks(false, null))
                 .thenReturn(List.of(task));
 
         when(taskMapper.toResponse(task))
@@ -280,8 +279,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(2))
                 .andExpect(jsonPath("$[0].completed").value(false));
 
-        verify(taskService).getTasksByCompleted(false);
-        verify(taskService, never()).getAllTasks();
+        verify(taskService).getTasks(false, null);
     }
 
     @Test
@@ -291,7 +289,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering by Priority", true, Priority.HIGH);
 
-        when(taskService.getTasksByPriority(Priority.HIGH))
+        when(taskService.getTasks(null, Priority.HIGH))
                 .thenReturn(List.of(task));
 
         when(taskMapper.toResponse(task))
@@ -302,8 +300,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
 
-        verify(taskService).getTasksByPriority(Priority.HIGH);
-        verify(taskService, never()).getAllTasks();
+        verify(taskService).getTasks(null, Priority.HIGH);
     }
 
     @Test
@@ -313,7 +310,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering by Completed&Priority", true, Priority.HIGH);
 
-        when(taskService.getTasksByCompletedAndPriority(true, Priority.HIGH))
+        when(taskService.getTasks(true, Priority.HIGH))
                 .thenReturn(List.of(task));
         when(taskMapper.toResponse(task)).thenReturn(response);
         mockMvc.perform(get("/tasks?completed=true&priority=HIGH"))
@@ -321,9 +318,6 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].completed").value(true))
                 .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
-        verify(taskService).getTasksByCompletedAndPriority(true, Priority.HIGH);
-        verify(taskService, never()).getTasksByPriority(Priority.HIGH);
-        verify(taskService, never()).getAllTasks();
-        verify(taskService, never()).getTasksByCompleted(true);
+        verify(taskService).getTasks(true, Priority.HIGH);
     }
 }

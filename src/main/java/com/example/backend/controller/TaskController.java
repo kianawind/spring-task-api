@@ -35,17 +35,8 @@ public class TaskController {
     @GetMapping("/tasks")
     public List<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed,
                                        @RequestParam(required = false) Priority priority) {
-        List<Task> tasks;
-        if (completed == null && priority == null) {
-            tasks = taskService.getAllTasks();
-        } else if (completed != null && priority == null) {
-            tasks = taskService.getTasksByCompleted(completed);
-        } else if (completed == null) {
-            tasks = taskService.getTasksByPriority(priority);
-        } else {
-            tasks = taskService.getTasksByCompletedAndPriority(completed, priority);
-        }
-        return tasks.stream()
+        return taskService.getTasks(completed, priority)
+                .stream()
                 .map(taskMapper::toResponse)
                 .toList();
     }

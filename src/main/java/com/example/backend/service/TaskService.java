@@ -4,6 +4,8 @@ import com.example.backend.exception.TaskNotFoundException;
 import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 import com.example.backend.repository.TaskRepository;
+import com.example.backend.specification.TaskSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,15 +53,10 @@ public class TaskService {
         taskRepository.deleteById(id);
     }
 
-    public List<Task> getTasksByCompleted(boolean completed) {
-        return taskRepository.findByCompleted(completed);
-    }
-
-    public List<Task> getTasksByPriority(Priority priority) {
-        return taskRepository.findByPriority(priority);
-    }
-
-    public List<Task> getTasksByCompletedAndPriority(boolean completed, Priority priority) {
-        return taskRepository.findByCompletedAndPriority(completed, priority);
+    public List<Task> getTasks(Boolean completed, Priority priority) {
+        Specification<Task> specification =
+                TaskSpecification.hasCompleted(completed)
+                        .and(TaskSpecification.hasPriority(priority));
+        return taskRepository.findAll(specification);
     }
 }

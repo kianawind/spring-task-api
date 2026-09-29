@@ -10,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -221,50 +222,18 @@ class TaskServiceTest {
     }
 
     @Test
-    void shouldGetTasksByCompleted() {
+    void shouldGetTasksUsingSpecification() {
         Task task1 = new Task(1L, "Java", true, Priority.HIGH);
-        Task task2 = new Task(2L, "Completed true", true, Priority.MEDIUM);
+        Task task2 = new Task(2L, "Spring", true, Priority.HIGH);
 
-        when(taskRepository.findByCompleted(true))
+        when(taskRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of(task1, task2));
 
-        List<Task> result = taskService.getTasksByCompleted(true);
+        List<Task> result = taskService.getTasks(true, Priority.HIGH);
 
         assertEquals(2, result.size());
         assertEquals("Java", result.get(0).getTitle());
-        assertEquals("Completed true", result.get(1).getTitle());
-        verify(taskRepository).findByCompleted(true);
-    }
-
-    @Test
-    void shouldGetTasksByPriority() {
-        Task task1 = new Task(1L, "Java Spring", true, Priority.HIGH);
-        Task task2 = new Task(2L, "Priority HIGH", true, Priority.HIGH);
-
-        when(taskRepository.findByPriority(Priority.HIGH))
-                .thenReturn(List.of(task1, task2));
-
-        List<Task> result = taskService.getTasksByPriority(Priority.HIGH);
-
-        assertEquals(2, result.size());
-        assertEquals("Java Spring", result.get(0).getTitle());
-        assertEquals("Priority HIGH", result.get(1).getTitle());
-        verify(taskRepository).findByPriority(Priority.HIGH);
-    }
-
-    @Test
-    void shouldGetTasksByCompletedAndPriority() {
-        Task task1 = new Task(1L, "Java Spring", true, Priority.HIGH);
-        Task task2 = new Task(2L, "Priority HIGH", true, Priority.HIGH);
-
-        when(taskRepository.findByCompletedAndPriority(true, Priority.HIGH))
-                .thenReturn(List.of(task1, task2));
-
-        List<Task> result = taskService.getTasksByCompletedAndPriority(true, Priority.HIGH);
-
-        assertEquals(2, result.size());
-        assertEquals("Java Spring", result.get(0).getTitle());
-        assertEquals("Priority HIGH", result.get(1).getTitle());
-        verify(taskRepository).findByCompletedAndPriority(true, Priority.HIGH);
+        assertEquals("Spring", result.get(1).getTitle());
+        verify(taskRepository).findAll(any(Specification.class));
     }
 }
