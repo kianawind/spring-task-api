@@ -235,4 +235,36 @@ class TaskServiceTest {
         assertEquals("Completed true", result.get(1).getTitle());
         verify(taskRepository).findByCompleted(true);
     }
+
+    @Test
+    void shouldGetTasksByPriority() {
+        Task task1 = new Task(1L, "Java Spring", true, Priority.HIGH);
+        Task task2 = new Task(2L, "Priority HIGH", true, Priority.HIGH);
+
+        when(taskRepository.findByPriority(Priority.HIGH))
+                .thenReturn(List.of(task1, task2));
+
+        List<Task> result = taskService.getTasksByPriority(Priority.HIGH);
+
+        assertEquals(2, result.size());
+        assertEquals("Java Spring", result.get(0).getTitle());
+        assertEquals("Priority HIGH", result.get(1).getTitle());
+        verify(taskRepository).findByPriority(Priority.HIGH);
+    }
+
+    @Test
+    void shouldGetTasksByCompletedAndPriority() {
+        Task task1 = new Task(1L, "Java Spring", true, Priority.HIGH);
+        Task task2 = new Task(2L, "Priority HIGH", true, Priority.HIGH);
+
+        when(taskRepository.findByCompletedAndPriority(true, Priority.HIGH))
+                .thenReturn(List.of(task1, task2));
+
+        List<Task> result = taskService.getTasksByCompletedAndPriority(true, Priority.HIGH);
+
+        assertEquals(2, result.size());
+        assertEquals("Java Spring", result.get(0).getTitle());
+        assertEquals("Priority HIGH", result.get(1).getTitle());
+        verify(taskRepository).findByCompletedAndPriority(true, Priority.HIGH);
+    }
 }

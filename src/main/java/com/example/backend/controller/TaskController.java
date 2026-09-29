@@ -3,6 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.dto.TaskRequest;
 import com.example.backend.dto.TaskResponse;
 import com.example.backend.mapper.TaskMapper;
+import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 import com.example.backend.service.TaskService;
 import jakarta.validation.Valid;
@@ -32,12 +33,17 @@ public class TaskController {
     }
 
     @GetMapping("/tasks")
-    public List<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed) {
+    public List<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed,
+                                       @RequestParam(required = false) Priority priority) {
         List<Task> tasks;
-        if (completed == null) {
+        if (completed == null && priority == null) {
             tasks = taskService.getAllTasks();
-        } else {
+        } else if (completed != null && priority == null) {
             tasks = taskService.getTasksByCompleted(completed);
+        } else if (completed == null) {
+            tasks = taskService.getTasksByPriority(priority);
+        } else {
+            tasks = taskService.getTasksByCompletedAndPriority(completed, priority);
         }
         return tasks.stream()
                 .map(taskMapper::toResponse)

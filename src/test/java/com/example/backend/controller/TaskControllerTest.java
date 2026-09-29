@@ -284,4 +284,46 @@ class TaskControllerTest {
         verify(taskService, never()).getAllTasks();
     }
 
+    @Test
+    void shouldGetTasksByPriority() throws Exception {
+        Task task = new Task(1L, "Learn filtering by Priority", true, Priority.HIGH);
+
+        TaskResponse response =
+                new TaskResponse(1L, "Learn filtering by Priority", true, Priority.HIGH);
+
+        when(taskService.getTasksByPriority(Priority.HIGH))
+                .thenReturn(List.of(task));
+
+        when(taskMapper.toResponse(task))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/tasks?priority=HIGH"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
+
+        verify(taskService).getTasksByPriority(Priority.HIGH);
+        verify(taskService, never()).getAllTasks();
+    }
+
+    @Test
+    void shouldGetTasksByCompletedAndPriority() throws Exception {
+        Task task = new Task(1L, "Learn filtering by Completed&Priority", true, Priority.HIGH);
+
+        TaskResponse response =
+                new TaskResponse(1L, "Learn filtering by Completed&Priority", true, Priority.HIGH);
+
+        when(taskService.getTasksByCompletedAndPriority(true, Priority.HIGH))
+                .thenReturn(List.of(task));
+        when(taskMapper.toResponse(task)).thenReturn(response);
+        mockMvc.perform(get("/tasks?completed=true&priority=HIGH"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].completed").value(true))
+                .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
+        verify(taskService).getTasksByCompletedAndPriority(true, Priority.HIGH);
+        verify(taskService, never()).getTasksByPriority(Priority.HIGH);
+        verify(taskService, never()).getAllTasks();
+        verify(taskService, never()).getTasksByCompleted(true);
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.exception.TaskNotFoundException;
+import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 import com.example.backend.repository.TaskRepository;
 import org.springframework.stereotype.Service;
@@ -52,5 +53,13 @@ public class TaskService {
 
     public List<Task> getTasksByCompleted(boolean completed) {
         return taskRepository.findByCompleted(completed);
+    }
+
+    public List<Task> getTasksByPriority(Priority priority) {
+        return taskRepository.findByPriority(priority);
+    }
+
+    public List<Task> getTasksByCompletedAndPriority(boolean completed, Priority priority) {
+        return taskRepository.findByCompletedAndPriority(completed, priority);
     }
 }
