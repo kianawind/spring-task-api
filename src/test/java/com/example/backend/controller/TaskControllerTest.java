@@ -247,7 +247,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering", true, Priority.HIGH);
 
-        when(taskService.getTasks(true, null))
+        when(taskService.getTasks(true, null, null))
                 .thenReturn(List.of(task));
 
         when(taskMapper.toResponse(task))
@@ -258,7 +258,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].completed").value(true));
 
-        verify(taskService).getTasks(true, null);
+        verify(taskService).getTasks(true, null, null);
     }
 
     @Test
@@ -268,7 +268,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(2L, "Learn filtering completed=false", false, Priority.HIGH);
 
-        when(taskService.getTasks(false, null))
+        when(taskService.getTasks(false, null, null))
                 .thenReturn(List.of(task));
 
         when(taskMapper.toResponse(task))
@@ -279,7 +279,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(2))
                 .andExpect(jsonPath("$[0].completed").value(false));
 
-        verify(taskService).getTasks(false, null);
+        verify(taskService).getTasks(false, null, null);
     }
 
     @Test
@@ -289,7 +289,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering by Priority", true, Priority.HIGH);
 
-        when(taskService.getTasks(null, Priority.HIGH))
+        when(taskService.getTasks(null, Priority.HIGH, null))
                 .thenReturn(List.of(task));
 
         when(taskMapper.toResponse(task))
@@ -300,7 +300,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
 
-        verify(taskService).getTasks(null, Priority.HIGH);
+        verify(taskService).getTasks(null, Priority.HIGH, null);
     }
 
     @Test
@@ -310,7 +310,7 @@ class TaskControllerTest {
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering by Completed&Priority", true, Priority.HIGH);
 
-        when(taskService.getTasks(true, Priority.HIGH))
+        when(taskService.getTasks(true, Priority.HIGH, null))
                 .thenReturn(List.of(task));
         when(taskMapper.toResponse(task)).thenReturn(response);
         mockMvc.perform(get("/tasks?completed=true&priority=HIGH"))
@@ -318,6 +318,31 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].completed").value(true))
                 .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
-        verify(taskService).getTasks(true, Priority.HIGH);
+        verify(taskService).getTasks(true, Priority.HIGH, null);
+    }
+
+    @Test
+    void shouldGetTasksByTitleContains() throws Exception {
+        Task task1 = new Task(1L, "Learn Java", false, Priority.HIGH);
+        Task task2 = new Task(2L, "Java Streams", true, Priority.MEDIUM);
+
+        TaskResponse response1 =
+                new TaskResponse(1L, "Learn Java", false, Priority.HIGH);
+        TaskResponse response2 =
+                new TaskResponse(2L, "Java Streams", true, Priority.MEDIUM);
+
+        when(taskService.getTasks(null, null, "Java"))
+                .thenReturn(List.of(task1, task2));
+        when(taskMapper.toResponse(task1)).thenReturn(response1);
+        when(taskMapper.toResponse(task2)).thenReturn(response2);
+
+        mockMvc.perform(get("/tasks").param("titleContains", "Java"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[0].title").value("Learn Java"))
+                .andExpect(jsonPath("$[1].title").value("Java Streams"));
+        verify(taskService).getTasks(null, null, "Java");
     }
 }

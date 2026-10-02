@@ -229,7 +229,7 @@ class TaskServiceTest {
         when(taskRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of(task1, task2));
 
-        List<Task> result = taskService.getTasks(true, Priority.HIGH);
+        List<Task> result = taskService.getTasks(true, Priority.HIGH, null);
 
         assertEquals(2, result.size());
         assertEquals("Java", result.get(0).getTitle());

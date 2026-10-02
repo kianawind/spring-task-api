@@ -34,8 +34,9 @@ public class TaskController {
 
     @GetMapping("/tasks")
     public List<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed,
-                                       @RequestParam(required = false) Priority priority) {
-        return taskService.getTasks(completed, priority)
+                                       @RequestParam(required = false) Priority priority,
+                                       @RequestParam(required = false) String titleContains) {
+        return taskService.getTasks(completed, priority, titleContains)
                 .stream()
                 .map(taskMapper::toResponse)
                 .toList();

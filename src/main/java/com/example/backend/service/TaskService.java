@@ -53,10 +53,11 @@ public class TaskService {
         taskRepository.deleteById(id);
     }
 
-    public List<Task> getTasks(Boolean completed, Priority priority) {
+    public List<Task> getTasks(Boolean completed, Priority priority, String titleContains) {
         Specification<Task> specification =
                 TaskSpecification.hasCompleted(completed)
-                        .and(TaskSpecification.hasPriority(priority));
+                        .and(TaskSpecification.hasPriority(priority))
+                        .and(TaskSpecification.titleContains(titleContains));
         return taskRepository.findAll(specification);
     }
 }
