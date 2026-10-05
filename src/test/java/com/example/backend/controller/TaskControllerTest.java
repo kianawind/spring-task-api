@@ -26,11 +26,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.backend.config.JpaWebConfig;
+import org.springframework.context.annotation.Import;
+
 @WebMvcTest(TaskController.class)
+@Import(JpaWebConfig.class)
 class TaskControllerTest {
 
     @Autowired
