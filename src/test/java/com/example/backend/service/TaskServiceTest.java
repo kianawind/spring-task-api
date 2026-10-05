@@ -10,6 +10,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
@@ -226,14 +230,15 @@ class TaskServiceTest {
         Task task1 = new Task(1L, "Java", true, Priority.HIGH);
         Task task2 = new Task(2L, "Spring", true, Priority.HIGH);
 
-        when(taskRepository.findAll(any(Specification.class)))
-                .thenReturn(List.of(task1, task2));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Task> taskPage = new PageImpl<>(List.of(task1, task2), pageable, 2);
+        when(taskRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(taskPage);
+        Page<Task> result = taskService.getTasks(true, Priority.HIGH, null, pageable);
 
-        List<Task> result = taskService.getTasks(true, Priority.HIGH, null);
-
-        assertEquals(2, result.size());
-        assertEquals("Java", result.get(0).getTitle());
-        assertEquals("Spring", result.get(1).getTitle());
-        verify(taskRepository).findAll(any(Specification.class));
+        assertEquals(2, result.getContent().size());
+        assertEquals("Java", result.getContent().get(0).getTitle());
+        assertEquals("Spring", result.getContent().get(1).getTitle());
+        verify(taskRepository).findAll(any(Specification.class), eq(pageable));
     }
 }

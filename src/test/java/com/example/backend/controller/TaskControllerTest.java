@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -246,19 +251,19 @@ class TaskControllerTest {
 
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering", true, Priority.HIGH);
-
-        when(taskService.getTasks(true, null, null))
-                .thenReturn(List.of(task));
+        Page<Task> taskPage = new PageImpl<>(List.of(task));
+        when(taskService.getTasks(eq(true), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(taskPage);
 
         when(taskMapper.toResponse(task))
                 .thenReturn(response);
 
         mockMvc.perform(get("/tasks?completed=true"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].completed").value(true));
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].completed").value(true));
 
-        verify(taskService).getTasks(true, null, null);
+        verify(taskService).getTasks(eq(true), isNull(), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -267,19 +272,19 @@ class TaskControllerTest {
 
         TaskResponse response =
                 new TaskResponse(2L, "Learn filtering completed=false", false, Priority.HIGH);
-
-        when(taskService.getTasks(false, null, null))
-                .thenReturn(List.of(task));
+        Page<Task> taskPage = new PageImpl<>(List.of(task));
+        when(taskService.getTasks(eq(false), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(taskPage);
 
         when(taskMapper.toResponse(task))
                 .thenReturn(response);
 
         mockMvc.perform(get("/tasks?completed=false"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(2))
-                .andExpect(jsonPath("$[0].completed").value(false));
+                .andExpect(jsonPath("$.content[0].id").value(2))
+                .andExpect(jsonPath("$.content[0].completed").value(false));
 
-        verify(taskService).getTasks(false, null, null);
+        verify(taskService).getTasks(eq(false), isNull(), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -288,19 +293,19 @@ class TaskControllerTest {
 
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering by Priority", true, Priority.HIGH);
-
-        when(taskService.getTasks(null, Priority.HIGH, null))
-                .thenReturn(List.of(task));
+        Page<Task> taskPage = new PageImpl<>(List.of(task));
+        when(taskService.getTasks(isNull(), eq(Priority.HIGH), isNull(), any(Pageable.class)))
+                .thenReturn(taskPage);
 
         when(taskMapper.toResponse(task))
                 .thenReturn(response);
 
         mockMvc.perform(get("/tasks?priority=HIGH"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].priority").value(Priority.HIGH.name()));
 
-        verify(taskService).getTasks(null, Priority.HIGH, null);
+        verify(taskService).getTasks(isNull(), eq(Priority.HIGH), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -309,16 +314,16 @@ class TaskControllerTest {
 
         TaskResponse response =
                 new TaskResponse(1L, "Learn filtering by Completed&Priority", true, Priority.HIGH);
-
-        when(taskService.getTasks(true, Priority.HIGH, null))
-                .thenReturn(List.of(task));
+        Page<Task> taskPage = new PageImpl<> (List.of(task));
+        when(taskService.getTasks(eq(true), eq(Priority.HIGH), isNull(), any(Pageable.class)))
+                .thenReturn(taskPage);
         when(taskMapper.toResponse(task)).thenReturn(response);
         mockMvc.perform(get("/tasks?completed=true&priority=HIGH"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].completed").value(true))
-                .andExpect(jsonPath("$[0].priority").value(Priority.HIGH.name()));
-        verify(taskService).getTasks(true, Priority.HIGH, null);
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].completed").value(true))
+                .andExpect(jsonPath("$.content[0].priority").value(Priority.HIGH.name()));
+        verify(taskService).getTasks(eq(true), eq(Priority.HIGH), isNull(), any(Pageable.class));
     }
 
     @Test
@@ -330,19 +335,55 @@ class TaskControllerTest {
                 new TaskResponse(1L, "Learn Java", false, Priority.HIGH);
         TaskResponse response2 =
                 new TaskResponse(2L, "Java Streams", true, Priority.MEDIUM);
-
-        when(taskService.getTasks(null, null, "Java"))
-                .thenReturn(List.of(task1, task2));
+        Page<Task> taskPage = new PageImpl<>(List.of(task1, task2));
+        when(taskService.getTasks(isNull(), isNull(), eq("Java"), any(Pageable.class)))
+                .thenReturn(taskPage);
         when(taskMapper.toResponse(task1)).thenReturn(response1);
         when(taskMapper.toResponse(task2)).thenReturn(response2);
 
         mockMvc.perform(get("/tasks").param("titleContains", "Java"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[0].title").value("Learn Java"))
-                .andExpect(jsonPath("$[1].title").value("Java Streams"));
-        verify(taskService).getTasks(null, null, "Java");
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[1].id").value(2))
+                .andExpect(jsonPath("$.content[0].title").value("Learn Java"))
+                .andExpect(jsonPath("$.content[1].title").value("Java Streams"));
+        verify(taskService).getTasks(isNull(), isNull(), eq("Java"), any(Pageable.class));
+    }
+
+    @Test
+    void shouldGetSecondPageOfTasks() throws Exception {
+        Task task1 = new Task(3L, "Task 3", false, Priority.HIGH);
+        Task task2 = new Task(4L, "Task 4", false, Priority.HIGH);
+
+        Pageable pageable = PageRequest.of(1, 2);
+        Page<Task> taskPage = new PageImpl<>(List.of(task1, task2), pageable, 6);
+
+        when(taskService.getTasks(isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(taskPage);
+        TaskResponse response1 =
+                new TaskResponse(3L, "Task 3", false, Priority.HIGH);
+        TaskResponse response2 =
+                new TaskResponse(4L, "Task 4", false, Priority.HIGH);
+        when(taskMapper.toResponse(task1)).thenReturn(response1);
+        when(taskMapper.toResponse(task2)).thenReturn(response2);
+
+        mockMvc.perform(get("/tasks")
+                .param("page", "1")
+                .param("size", "2"))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.content[0].id").value(3))
+                .andExpect(jsonPath("$.content[1].id").value(4))
+                .andExpect(jsonPath("$.page.number").value(1))
+                .andExpect(jsonPath("$.page.size").value(2))
+                .andExpect(jsonPath("$.page.totalElements").value(6))
+                .andExpect(jsonPath("$.page.totalPages").value(3));
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(taskService).getTasks(isNull(), isNull(), isNull(), pageableCaptor.capture());
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertEquals(1, capturedPageable.getPageNumber());
+        assertEquals(2, capturedPageable.getPageSize());
+
     }
 }

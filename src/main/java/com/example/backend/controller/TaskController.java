@@ -7,11 +7,12 @@ import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 import com.example.backend.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 public class TaskController {
@@ -33,13 +34,12 @@ public class TaskController {
     }
 
     @GetMapping("/tasks")
-    public List<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed,
+    public Page<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed,
                                        @RequestParam(required = false) Priority priority,
-                                       @RequestParam(required = false) String titleContains) {
-        return taskService.getTasks(completed, priority, titleContains)
-                .stream()
-                .map(taskMapper::toResponse)
-                .toList();
+                                       @RequestParam(required = false) String titleContains,
+                                       Pageable pageable) {
+        return taskService.getTasks(completed, priority, titleContains, pageable)
+                .map(taskMapper::toResponse);
     }
 
     @GetMapping("/tasks/{id}")

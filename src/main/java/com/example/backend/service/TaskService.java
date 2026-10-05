@@ -5,6 +5,8 @@ import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 import com.example.backend.repository.TaskRepository;
 import com.example.backend.specification.TaskSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -53,11 +55,11 @@ public class TaskService {
         taskRepository.deleteById(id);
     }
 
-    public List<Task> getTasks(Boolean completed, Priority priority, String titleContains) {
+    public Page<Task> getTasks(Boolean completed, Priority priority, String titleContains, Pageable pageable) {
         Specification<Task> specification =
                 TaskSpecification.hasCompleted(completed)
                         .and(TaskSpecification.hasPriority(priority))
                         .and(TaskSpecification.titleContains(titleContains));
-        return taskRepository.findAll(specification);
+        return taskRepository.findAll(specification, pageable);
     }
 }
