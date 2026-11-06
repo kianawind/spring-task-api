@@ -11,10 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -387,6 +385,47 @@ class TaskControllerTest {
         Pageable capturedPageable = pageableCaptor.getValue();
         assertEquals(1, capturedPageable.getPageNumber());
         assertEquals(2, capturedPageable.getPageSize());
+    }
 
+    @Test
+    void shouldPassSortingToService() throws Exception {
+        Page<Task> taskPage = Page.empty();
+        when(taskService.getTasks(isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(taskPage);
+        mockMvc.perform(get("/tasks")
+                .param("page", "0")
+                .param("size", "5")
+                .param("sort", "title,asc"))
+                .andExpect(status().isOk());
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(taskService).getTasks(isNull(), isNull(), isNull(), pageableCaptor.capture());
+        Pageable captured = pageableCaptor.getValue();
+        assertEquals(0, captured.getPageNumber());
+        assertEquals(5, captured.getPageSize());
+
+        Sort.Order titleOrder = captured.getSort().getOrderFor("title");
+        assertNotNull(titleOrder);
+        assertEquals(Sort.Direction.ASC, titleOrder.getDirection());
+    }
+
+    @Test
+    void shouldGetMultipleSorting() throws Exception{
+        Page<Task> taskPage = Page.empty();
+        when(taskService.getTasks(isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(taskPage);
+        mockMvc.perform(get("/tasks")
+                        .param("sort", "priority,desc")
+                        .param("sort", "title,asc"))
+                .andExpect(status().isOk());
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(taskService).getTasks(isNull(), isNull(), isNull(), pageableCaptor.capture());
+
+        Pageable captured = pageableCaptor.getValue();
+        Sort.Order priorityOrder = captured.getSort().getOrderFor("priority");
+        Sort.Order titleOrder = captured.getSort().getOrderFor("title");
+        assertNotNull(priorityOrder);
+        assertNotNull(titleOrder);
+        assertEquals(Sort.Direction.DESC, priorityOrder.getDirection());
+        assertEquals(Sort.Direction.ASC, titleOrder.getDirection());
     }
 }

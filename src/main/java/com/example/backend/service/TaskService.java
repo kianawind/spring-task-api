@@ -60,6 +60,8 @@ public class TaskService {
                 TaskSpecification.hasCompleted(completed)
                         .and(TaskSpecification.hasPriority(priority))
                         .and(TaskSpecification.titleContains(titleContains));
+        boolean sortByPriority = pageable.getSort().getOrderFor("priority") != null;
+        if (sortByPriority) { return taskRepository.findAllWithCustomSort(specification, pageable); }
         return taskRepository.findAll(specification, pageable);
     }
 }
