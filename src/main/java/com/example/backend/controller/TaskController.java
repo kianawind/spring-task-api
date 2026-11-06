@@ -7,6 +7,7 @@ import com.example.backend.model.Priority;
 import com.example.backend.model.Task;
 import com.example.backend.service.TaskService;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,7 @@ public class TaskController {
     public Page<TaskResponse> getTasks(@RequestParam(required = false) Boolean completed,
                                        @RequestParam(required = false) Priority priority,
                                        @RequestParam(required = false) String titleContains,
-                                       Pageable pageable) {
+                                       @ParameterObject Pageable pageable) {
         return taskService.getTasks(completed, priority, titleContains, pageable)
                 .map(taskMapper::toResponse);
     }
